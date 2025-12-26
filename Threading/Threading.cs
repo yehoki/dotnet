@@ -141,13 +141,44 @@ public class Threading
             if (bet) Console.WriteLine($"Bet successful for user {userId} for amount {betAmount} on thread {Environment.CurrentManagedThreadId}");
         });
     }
+    public void SingleBetSimulationMonitor()
+    {
+        Random random = new();
+        Betting betting = new();
+        int[] userIds = [1, 2, 3, 4, 5, 6, 7];
+        Parallel.For(0, 1000, i =>
+        {
+            int userId = random.Next(userIds.Length);
+            decimal betAmount = (decimal)(random.NextDouble() * 100.00);
+            bool bet = betting.MakeBetSync(userId, betAmount);
+            if (bet) Console.WriteLine($"Bet successful for user {userId} for amount {betAmount} on thread {Environment.CurrentManagedThreadId}");
+        });
+    }
 }
 public class Betting()
 {
     private readonly ConcurrentDictionary<int, decimal> _userBetMap = [];
+    private readonly Dictionary<int, decimal> _userBetMapSync = [];
     public bool MakeBet(int userId, decimal betAmount)
     {
         Console.WriteLine($"Making bet for user {userId} for amount {betAmount} on thread {Environment.CurrentManagedThreadId}");
+        decimal newBalance;
+        if (_userBetMap.TryGetValue(userId, out var balance))
+            newBalance = balance - betAmount;
+        else
+            newBalance = 100 - betAmount;
+        
+        if (newBalance < 0) return false;
+        Console.WriteLine($"New balance: {newBalance} for userId {userId} on thread {Environment.CurrentManagedThreadId}");
+        _userBetMap[userId] = newBalance;
+        return true;
+    }
+    public bool MakeBetSync(int userId, decimal betAmount)
+    {
+        Console.WriteLine($"Making bet for user {userId} for amount {betAmount} on thread {Environment.CurrentManagedThreadId}");
+        Monitor.Enter(_userBetMapSync);
+        try
+        {
             decimal newBalance;
             if (_userBetMap.TryGetValue(userId, out var balance))
                 newBalance = balance - betAmount;
@@ -158,5 +189,10 @@ public class Betting()
             Console.WriteLine($"New balance: {newBalance} for userId {userId} on thread {Environment.CurrentManagedThreadId}");
             _userBetMap[userId] = newBalance;
             return true;
+        }
+        finally
+        {
+            Monitor.Exit(_userBetMapSync);
+        }
     }
 }

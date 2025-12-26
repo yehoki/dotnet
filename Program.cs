@@ -8,4 +8,5 @@ Threading threading = new();
 // threading.LongLoopParallel();
 
 // threading.SingleBetSimulation();
-threading.MultipleBetSimulation();
+// threading.MultipleBetSimulation();
+threading.SingleBetSimulationMonitor();
