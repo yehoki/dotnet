@@ -96,4 +96,28 @@ public class Threading
         stopwatch.Stop();
         Console.WriteLine($"All tasks finished in {stopwatch.ElapsedMilliseconds}ms");
     }
+    public void LongLoop()
+    {
+        Stopwatch stopwatch = new();
+        stopwatch.Start();
+        for (int i = 0; i < 1_000_000; i++)
+        {
+            LoopMethod(i);
+        }
+        stopwatch.Stop();
+        Console.WriteLine($"Finished in {stopwatch.ElapsedMilliseconds}ms");
+    }
+    public void LongLoopParallel()
+    {
+        Stopwatch stopwatch = new();
+        stopwatch.Start();
+        Parallel.For(0, 1_000_000, i => { LoopMethod(i); });
+        stopwatch.Stop();
+        Console.WriteLine($"Finished in {stopwatch.ElapsedMilliseconds}ms");
+    }
+    private int LoopMethod(int i)
+    {
+        // Console.WriteLine(Environment.CurrentManagedThreadId);
+        return i * i;
+    }
 }

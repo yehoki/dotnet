@@ -3,4 +3,6 @@
 Threading threading = new();
 // await threading.MakeTeaAsync();
 // threading.BlockingTasks();
-await threading.BlockingTasksAsync();
+// await threading.BlockingTasksAsync();
+threading.LongLoop();
+threading.LongLoopParallel();
