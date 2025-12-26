@@ -59,4 +59,41 @@ public class Threading
         stopwatch.Stop();
         Console.WriteLine($"All tasks finished in {stopwatch.ElapsedMilliseconds}ms");
     }
+    public async Task BlockingTasksAsync()
+    {
+        Stopwatch stopwatch = new();
+        stopwatch.Start();
+        Console.WriteLine("Begin running Tasks");
+        Task first = Task.Run(async () =>
+        {
+            Console.WriteLine($"First running on thread: {Environment.CurrentManagedThreadId}");
+            await Task.Delay(2500);
+            Console.WriteLine($"First finished running on thread: {Environment.CurrentManagedThreadId}");
+        });
+        
+        Task second = Task.Run(async () =>
+        {
+            Console.WriteLine($"Second running on thread: {Environment.CurrentManagedThreadId}");
+            await Task.Delay(3500);
+            Console.WriteLine($"Second finished running on thread: {Environment.CurrentManagedThreadId}");
+        });
+        
+        Task third = Task.Run(async () =>
+        {
+            Console.WriteLine($"Third running on thread: {Environment.CurrentManagedThreadId}");
+            await Task.Delay(4500);
+            Console.WriteLine($"Third finished running on thread: {Environment.CurrentManagedThreadId}");
+        });
+        List<Task> tasks = [first, second, third];
+        Task other = Task.Run(async () =>
+        {
+            Console.WriteLine($"short task on thread: {Environment.CurrentManagedThreadId}");
+            await Task.Delay(2500);
+            Console.WriteLine("short task on thread finished");
+        });
+        await Task.WhenAll(tasks);
+        await other;
+        stopwatch.Stop();
+        Console.WriteLine($"All tasks finished in {stopwatch.ElapsedMilliseconds}ms");
+    }
 }
