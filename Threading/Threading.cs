@@ -141,22 +141,25 @@ public class Threading
         });
     }
 }
-
 public class Betting()
 {
     private readonly Dictionary<int, decimal> _userBetMap = [];
+    private readonly Lock _lock = new();
     public bool MakeBet(int userId, decimal betAmount)
     {
         Console.WriteLine($"Making bet for user {userId} for amount {betAmount} on thread {Environment.CurrentManagedThreadId}");
-        decimal newBalance;
-        if (_userBetMap.TryGetValue(userId, out var balance))
-            newBalance = balance - betAmount;
-        else
-            newBalance = 100 - betAmount;
-        
-        if (newBalance < 0) return false;
-        Console.WriteLine($"New balance: {newBalance} for userId {userId} on thread {Environment.CurrentManagedThreadId}");
-        _userBetMap[userId] = newBalance;
-        return true;
+        lock (_lock)
+        {
+            decimal newBalance;
+            if (_userBetMap.TryGetValue(userId, out var balance))
+                newBalance = balance - betAmount;
+            else
+                newBalance = 100 - betAmount;
+            
+            if (newBalance < 0) return false;
+            Console.WriteLine($"New balance: {newBalance} for userId {userId} on thread {Environment.CurrentManagedThreadId}");
+            _userBetMap[userId] = newBalance;
+            return true;
+        }
     }
 }
