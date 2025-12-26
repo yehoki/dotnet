@@ -4,5 +4,7 @@ Threading threading = new();
 // await threading.MakeTeaAsync();
 // threading.BlockingTasks();
 // await threading.BlockingTasksAsync();
-threading.LongLoop();
-threading.LongLoopParallel();
+// threading.LongLoop();
+// threading.LongLoopParallel();
+
+threading.SingleBetSimulation();

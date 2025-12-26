@@ -120,4 +120,11 @@ public class Threading
         // Console.WriteLine(Environment.CurrentManagedThreadId);
         return i * i;
     }
+    public void SingleBetSimulation()
+    {
+        int balance = 0;
+        // Multithread increment
+        Parallel.For(0, 100000, i => { balance++; });
+        Console.WriteLine($"Balance: {balance}");
+    }
 }
