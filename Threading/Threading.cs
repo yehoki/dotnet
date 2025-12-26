@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Diagnostics;
 
 namespace dotnet.Threading;
@@ -143,13 +144,10 @@ public class Threading
 }
 public class Betting()
 {
-    private readonly Dictionary<int, decimal> _userBetMap = [];
-    private readonly Lock _lock = new();
+    private readonly ConcurrentDictionary<int, decimal> _userBetMap = [];
     public bool MakeBet(int userId, decimal betAmount)
     {
         Console.WriteLine($"Making bet for user {userId} for amount {betAmount} on thread {Environment.CurrentManagedThreadId}");
-        lock (_lock)
-        {
             decimal newBalance;
             if (_userBetMap.TryGetValue(userId, out var balance))
                 newBalance = balance - betAmount;
@@ -160,6 +158,5 @@ public class Betting()
             Console.WriteLine($"New balance: {newBalance} for userId {userId} on thread {Environment.CurrentManagedThreadId}");
             _userBetMap[userId] = newBalance;
             return true;
-        }
     }
 }
