@@ -1,4 +1,5 @@
-﻿using dotnet.Memory;
+﻿using dotnet.Events;
+using dotnet.Memory;
 using dotnet.Threading;
 
 Threading threading = new();
@@ -14,6 +15,8 @@ Threading threading = new();
 Memory memory = new();
 
 // 10ms
-memory.MakeSnapshots();
+// memory.MakeSnapshots();
 // 500ms
-memory.MakeAccounts();
+// memory.MakeAccounts();
+
+Looper.Initialise();
