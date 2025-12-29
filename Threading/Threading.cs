@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 
 namespace dotnet.Threading;
+
 public class Threading
 {
     // Make Tea
@@ -22,6 +23,7 @@ public class Threading
         Console.WriteLine("Pour boiling water in cups");
         Console.WriteLine("Finish making Tea");
     }
+
     private async Task BoilWaterAsync()
     {
         Console.WriteLine("Pouring water in kettle");
@@ -29,6 +31,7 @@ public class Threading
         await Task.Delay(2500);
         Console.WriteLine("Finish boiling kettle");
     }
+
     public void BlockingTasks()
     {
         Stopwatch stopwatch = new();
@@ -40,14 +43,14 @@ public class Threading
             Thread.Sleep(2500);
             Console.WriteLine($"First finished running on thread: {Environment.CurrentManagedThreadId}");
         });
-        
+
         Task second = Task.Run(() =>
         {
             Console.WriteLine($"Second running on thread: {Environment.CurrentManagedThreadId}");
             Thread.Sleep(3500);
             Console.WriteLine($"Second finished running on thread: {Environment.CurrentManagedThreadId}");
         });
-        
+
         Task third = Task.Run(() =>
         {
             Console.WriteLine($"Third running on thread: {Environment.CurrentManagedThreadId}");
@@ -60,6 +63,7 @@ public class Threading
         stopwatch.Stop();
         Console.WriteLine($"All tasks finished in {stopwatch.ElapsedMilliseconds}ms");
     }
+
     public async Task BlockingTasksAsync()
     {
         Stopwatch stopwatch = new();
@@ -71,14 +75,14 @@ public class Threading
             await Task.Delay(2500);
             Console.WriteLine($"First finished running on thread: {Environment.CurrentManagedThreadId}");
         });
-        
+
         Task second = Task.Run(async () =>
         {
             Console.WriteLine($"Second running on thread: {Environment.CurrentManagedThreadId}");
             await Task.Delay(3500);
             Console.WriteLine($"Second finished running on thread: {Environment.CurrentManagedThreadId}");
         });
-        
+
         Task third = Task.Run(async () =>
         {
             Console.WriteLine($"Third running on thread: {Environment.CurrentManagedThreadId}");
@@ -97,6 +101,7 @@ public class Threading
         stopwatch.Stop();
         Console.WriteLine($"All tasks finished in {stopwatch.ElapsedMilliseconds}ms");
     }
+
     public void LongLoop()
     {
         Stopwatch stopwatch = new();
@@ -105,9 +110,11 @@ public class Threading
         {
             LoopMethod(i);
         }
+
         stopwatch.Stop();
         Console.WriteLine($"Finished in {stopwatch.ElapsedMilliseconds}ms");
     }
+
     public void LongLoopParallel()
     {
         Stopwatch stopwatch = new();
@@ -116,11 +123,13 @@ public class Threading
         stopwatch.Stop();
         Console.WriteLine($"Finished in {stopwatch.ElapsedMilliseconds}ms");
     }
+
     private int LoopMethod(int i)
     {
         // Console.WriteLine(Environment.CurrentManagedThreadId);
         return i * i;
     }
+
     public void SingleBetSimulation()
     {
         int balance = 0;
@@ -128,6 +137,7 @@ public class Threading
         Parallel.For(0, 100000, i => { balance++; });
         Console.WriteLine($"Balance: {balance}");
     }
+
     public void MultipleBetSimulation()
     {
         Random random = new();
@@ -138,9 +148,12 @@ public class Threading
             int userId = random.Next(userIds.Length);
             decimal betAmount = (decimal)(random.NextDouble() * 100.00);
             bool bet = betting.MakeBet(userId, betAmount);
-            if (bet) Console.WriteLine($"Bet successful for user {userId} for amount {betAmount} on thread {Environment.CurrentManagedThreadId}");
+            if (bet)
+                Console.WriteLine(
+                    $"Bet successful for user {userId} for amount {betAmount} on thread {Environment.CurrentManagedThreadId}");
         });
     }
+
     public void SingleBetSimulationMonitor()
     {
         Random random = new();
@@ -151,31 +164,99 @@ public class Threading
             int userId = random.Next(userIds.Length);
             decimal betAmount = (decimal)(random.NextDouble() * 100.00);
             bool bet = betting.MakeBetSync(userId, betAmount);
-            if (bet) Console.WriteLine($"Bet successful for user {userId} for amount {betAmount} on thread {Environment.CurrentManagedThreadId}");
+            if (bet)
+                Console.WriteLine(
+                    $"Bet successful for user {userId} for amount {betAmount} on thread {Environment.CurrentManagedThreadId}");
         });
     }
+
+    public async Task LongRunningProcess()
+    {
+        CancellationTokenSource cts = new();
+        while (true)
+        {
+            try
+            {
+                Console.WriteLine();
+                Console.WriteLine("Press s to start a long running task, and c to cancel it.");
+                Console.WriteLine("Press q to exit the app");
+                char c = Console.ReadKey().KeyChar;
+                Console.WriteLine();
+                if (c == 's')
+                {
+                    CancellationToken ct = cts.Token;
+                    // Begin long-running task in the background
+                    Task longRunningTask = StartLongRunningTask(ct);
+                    continue;
+                }
+
+                if (c == 'c')
+                {
+                    if (cts.IsCancellationRequested)
+                    {
+                        Console.WriteLine("Cancellation previously requested");
+                    }
+
+                    await cts.CancelAsync();
+                    cts = new CancellationTokenSource();
+                }
+
+                if (c == 'q')
+                {
+                    Console.WriteLine("Exiting...");
+                    break;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+        }
+    }
+
+    private async Task StartLongRunningTask(CancellationToken ct)
+    {
+        Console.WriteLine($"Starting long running Task on thread: {Environment.CurrentManagedThreadId}");
+        try
+        {
+            await Task.Delay(10000, ct);
+            Console.WriteLine("Task finished...");
+        }
+        catch (TaskCanceledException e)
+        {
+            Console.WriteLine($"Task cancelled: {e.Message}");
+            throw;
+        }
+    }
 }
+
 public class Betting()
 {
     private readonly ConcurrentDictionary<int, decimal> _userBetMap = [];
     private readonly Dictionary<int, decimal> _userBetMapSync = [];
+
     public bool MakeBet(int userId, decimal betAmount)
     {
-        Console.WriteLine($"Making bet for user {userId} for amount {betAmount} on thread {Environment.CurrentManagedThreadId}");
+        Console.WriteLine(
+            $"Making bet for user {userId} for amount {betAmount} on thread {Environment.CurrentManagedThreadId}");
         decimal newBalance;
         if (_userBetMap.TryGetValue(userId, out var balance))
             newBalance = balance - betAmount;
         else
             newBalance = 100 - betAmount;
-        
+
         if (newBalance < 0) return false;
-        Console.WriteLine($"New balance: {newBalance} for userId {userId} on thread {Environment.CurrentManagedThreadId}");
+        Console.WriteLine(
+            $"New balance: {newBalance} for userId {userId} on thread {Environment.CurrentManagedThreadId}");
         _userBetMap[userId] = newBalance;
         return true;
     }
+
     public bool MakeBetSync(int userId, decimal betAmount)
     {
-        Console.WriteLine($"Making bet for user {userId} for amount {betAmount} on thread {Environment.CurrentManagedThreadId}");
+        Console.WriteLine(
+            $"Making bet for user {userId} for amount {betAmount} on thread {Environment.CurrentManagedThreadId}");
         Monitor.Enter(_userBetMapSync);
         try
         {
@@ -184,9 +265,10 @@ public class Betting()
                 newBalance = balance - betAmount;
             else
                 newBalance = 100 - betAmount;
-            
+
             if (newBalance < 0) return false;
-            Console.WriteLine($"New balance: {newBalance} for userId {userId} on thread {Environment.CurrentManagedThreadId}");
+            Console.WriteLine(
+                $"New balance: {newBalance} for userId {userId} on thread {Environment.CurrentManagedThreadId}");
             _userBetMap[userId] = newBalance;
             return true;
         }
